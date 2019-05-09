@@ -16,6 +16,9 @@ final class ResourceOutputStream implements OutputStream
     const MAX_CONSECUTIVE_EMPTY_WRITES = 3;
     const LARGE_CHUNK_SIZE = 128 * 1024;
 
+    /** @var bool Flag to determine if feof() function should be used to check stream liveness. */
+    private static $useEof;
+
     /** @var resource */
     private $resource;
 
@@ -37,6 +40,10 @@ final class ResourceOutputStream implements OutputStream
      */
     public function __construct($stream, int $chunkSize = null)
     {
+        if (self::$useEof === null) {
+            self::$useEof = \PHP_OS === 'Darwin' || \stripos(\PHP_OS, 'bsd');
+        }
+
         if (!\is_resource($stream) || \get_resource_type($stream) !== 'stream') {
             throw new \Error("Expected a valid stream");
         }
@@ -69,10 +76,6 @@ final class ResourceOutputStream implements OutputStream
                     if ($length === 0) {
                         $deferred->resolve(0);
                         continue;
-                    }
-
-                    if (!\is_resource($stream) || (($metaData = @\stream_get_meta_data($stream)) && $metaData['eof'])) {
-                        throw new StreamException("The stream was closed by the peer");
                     }
 
                     // Error reporting suppressed since fwrite() emits E_WARNING if the pipe is broken or the buffer is full.
@@ -179,8 +182,9 @@ final class ResourceOutputStream implements OutputStream
                 return new Success(0);
             }
 
-            if (!\is_resource($this->resource) || (($metaData = @\stream_get_meta_data($this->resource)) && $metaData['eof'])) {
-                throw new StreamException("The stream was closed by the peer");
+            if (self::$useEof && @\feof($this->resource)) {
+                $this->close();
+                throw new StreamException("Stream closed by peer");
             }
 
             // Error reporting suppressed since fwrite() emits E_WARNING if the pipe is broken or the buffer is full.
