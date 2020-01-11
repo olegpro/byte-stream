@@ -24,6 +24,14 @@ composer require amphp/byte-stream
 
 Documentation is bundled within this repository in the [`./docs`](./docs) directory.
 
+## Tests (with "mbstring.func_overload = 2")
+
+```
+docker build -t amphp-byte-stream .
+docker run --rm -v "$PWD/":/app amphp-byte-stream composer install
+docker run --rm -v "$PWD/":/app amphp-byte-stream vendor/bin/phpunit
+```
+
 ## Versioning
 
 `amphp/byte-stream` follows the [semver](http://semver.org/) semantic versioning specification like all other `amphp` packages.
