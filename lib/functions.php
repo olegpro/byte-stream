@@ -9,11 +9,65 @@ use Amp\Promise;
 use function Amp\call;
 
 // @codeCoverageIgnoreStart
-if (\strlen('…') !== 3) {
+if (_strlen('…') !== 3) {
     throw new \Error(
         'The mbstring.func_overload ini setting is enabled. It must be disabled to use the stream package.'
     );
 } // @codeCoverageIgnoreEnd
+
+function _strlen($str)
+{
+    if (ini_get('mbstring.func_overload') === '2') {
+        return \mb_strlen($str, '8bit');
+    }
+
+    return \strlen($str);
+}
+
+function _strpos($s, $needle, $offset = 0)
+{
+    if (ini_get('mbstring.func_overload') === '2') {
+        return \mb_strpos($s, $needle, $offset, '8bit');
+    }
+
+    return \strpos($s, $needle, $offset);
+}
+
+function _substr($s, $start, $length = null)
+{
+    if (ini_get('mbstring.func_overload') === '2') {
+        if ($length === null) {
+            $result = \mb_substr($s, $start);
+            return $result !== false ? $result : '';
+        }
+
+        return \mb_substr($s, $start, $length);
+    }
+
+    if ($length === null) {
+        return \substr($s, $start);
+    }
+
+    return \substr($s, $start, $length);
+}
+
+function _safe_substr($s, $start, $length = null)
+{
+    if (ini_get('mbstring.func_overload') === '2') {
+        if ($length === null) {
+            $result = \mb_substr($s, $start, null, '8bit');
+            return $result !== false ? $result : '';
+        }
+
+        return \mb_substr($s, $start, $length);
+    }
+
+    if ($length === null) {
+        return \substr($s, $start);
+    }
+
+    return \substr($s, $start, $length);
+}
 
 if (!\defined('STDOUT')) {
     \define('STDOUT', \fopen('php://stdout', 'w'));

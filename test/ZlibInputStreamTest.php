@@ -23,7 +23,9 @@ class ZlibInputStreamTest extends TestCase
 
                 while ($content !== "") {
                     yield $emit($content[0]);
-                    $content = \substr($content, 1);
+
+                    $r = \Amp\ByteStream\_safe_substr($content, 1);
+                    $content = $r !== false ? $r : '';
                 }
             }));
 

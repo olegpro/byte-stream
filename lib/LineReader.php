@@ -24,18 +24,17 @@ final class LineReader
     public function readLine(): Promise
     {
         return call(function () {
-            if (($pos = \strpos($this->buffer, "\n")) !== false) {
-                $line = \substr($this->buffer, 0, $pos);
-                $this->buffer = \substr($this->buffer, $pos + 1);
+            if (($pos = _strpos($this->buffer, "\n")) !== false) {
+                $line = _substr($this->buffer, 0, $pos);
+                $this->buffer = _substr($this->buffer, $pos + 1);
                 return \rtrim($line, "\r");
             }
 
             while (null !== $chunk = yield $this->source->read()) {
                 $this->buffer .= $chunk;
-
-                if (($pos = \strpos($this->buffer, "\n")) !== false) {
-                    $line = \substr($this->buffer, 0, $pos);
-                    $this->buffer = \substr($this->buffer, $pos + 1);
+                if (($pos = _strpos($this->buffer, "\n")) !== false) {
+                    $line = _substr($this->buffer, 0, $pos);
+                    $this->buffer = _substr($this->buffer, $pos + 1);
                     return \rtrim($line, "\r");
                 }
             }
